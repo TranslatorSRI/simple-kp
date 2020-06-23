@@ -1,0 +1,72 @@
+id,type,name,occurrences,subtype,gender,good
+TGATE:Anduril,Weapon,Anduril,,sword,,
+TGATE:Aragorn,Person,Aragorn,1069,men,male,true
+TGATE:Arwen,Person,Arwen,51,elves,female,true
+TGATE:Axe,Weapon,Axe,,axe,,
+TGATE:Bag_End,Place,Bag End,77,place,,
+TGATE:Balin,Person,Balin,30,dwarf,male,true
+TGATE:Bard,Person,Bard,,men,male,true
+TGATE:Bilbo,Person,Bilbo,385,hobbit,male,true
+TGATE:Bill_the_Pony,Creature,Bill,45,pony,male,
+TGATE:Bill_Ferny,Person,Bill Ferny,,men,male,false
+TGATE:Black_Arrow,Weapon,Black Arrow,,arrow,,
+TGATE:Bombadil,Person,Bombadil,177,ainur,male,
+TGATE:Boromir,Person,Boromir,293,men,male,true
+TGATE:Bow,Weapon,Bow,,bow,,
+TGATE:Celeborn,Person,Celeborn,51,elves,male,
+TGATE:Celebrian,Person,Celebrian,,elves,female,
+TGATE:Thorin_and_Company,Group,Company,160,mixed,,
+TGATE:Dale,Place,Dale,,place,,
+TGATE:Denethor,Person,Denethor,168,men,male,false
+TGATE:Deagol,Person,Deagol,,hobbit,male,true
+TGATE:Durin%27s_Bane,Creature,Durin's Bane,,balrog,,false
+TGATE:Elendil,Person,Elendil,,men,male,true
+TGATE:Elrond,Person,Elrond,240,elves,male,true
+TGATE:Eomer,Person,Eomer,238,men,male,true
+TGATE:Eowyn,Person,Eowyn,115,men,female,true
+TGATE:Old_forest,Place,Old Forest,19,place,,
+TGATE:Faramir,Person,Faramir,313,men,male,true
+TGATE:Fellowship,Group,Fellowship,160,mixed,,
+TGATE:Frodo,Person,Frodo,2040,hobbit,male,true
+TGATE:Galadriel,Person,Galadriel,95,elves,female,
+TGATE:Gandalf,Person,Gandalf,1235,ainur,male,true
+TGATE:Goldberry,Person,Goldberry,32,ainur,female,
+TGATE:Gimli,Person,Gimli,403,dwarf,male,true
+TGATE:Glamdring,Weapon,Glamdring,,sword,,
+TGATE:Gloin,Person,Gloin,52,dwarf,male,true
+TGATE:Gollum,Person,Gollum,581,hobbit,male,false
+TGATE:Gondor,Place,Gondor,442,place,,
+TGATE:Gorbag,Person,Gorbag,30,orcs,male,false
+TGATE:Guthwine,Weapon,Guthwine,,sword,,
+TGATE:Haldir,Person,Haldir,44,elves,male,true
+TGATE:Hobbiton,Place,Hobbiton,59,place,,
+TGATE:Isengard,Place,Isengard,165,place,,
+TGATE:Isildur,Person,Isildur,103,men,male,true
+TGATE:Legolas,Person,Legolas,346,elves,male,true
+TGATE:Lonely_Mountain,Place,Lonely Mountain,,place,,
+TGATE:Lothlorien,Place,Lothlorien,97,place,,
+TGATE:Merry,Person,Merry,595,hobbit,male,true
+TGATE:Mordor,Place,Mordor,265,place,,
+TGATE:Morgul-blade,Weapon,Morgul-blade,,sword,,
+TGATE:Pippin,Person,Pippin,771,hobbit,male,true
+TGATE:Radagast,Person,Radagast,,ainur,male,true
+TGATE:The_one_ring,Thing,The One Ring,427,thing,,
+TGATE:Rivendell,Place,Rivendell,145,place,,
+TGATE:Rohan,Place,Rohan,263,place,,
+TGATE:Sam,Person,Sam,1400,hobbit,male,true
+TGATE:Saruman,Person,Saruman,312,ainur,male,false
+TGATE:Sauron,Person,Sauron,339,ainur,male,false
+TGATE:Shadowfax,Creature,Shadowfax,78,animal,male,true
+TGATE:Shelob,Creature,Shelob,40,spider,female,false
+TGATE:Shire,Place,Shire,411,place,,
+TGATE:Smaug,Creature,Smaug,,dragon,male,false
+TGATE:Sting,Weapon,Sting,,sword,,
+TGATE:Theoden,Person,Theoden,246,men,male,true
+TGATE:Thorin,Person,Thorin,40,dwarf,male,true
+TGATE:Thrain,Person,Thrain,33,dwarf,male,true
+TGATE:Minas_Tirith,Place,Minas Tirith,110,place,,
+TGATE:Treebeard,Person,Treebeard,221,ents,male,
+TGATE:Orcrist,Weapon,Orcrist,,sword,,
+TGATE:Orcs,Group,Orcs,321,orcs,,false
+TGATE:Witch-king,Person,Witch-King,,nazgul,male,false
+TGATE:Grima,Person,Wormtongue,65,men,male,false

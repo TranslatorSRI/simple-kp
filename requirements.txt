@@ -1,0 +1,4 @@
+aiosqlite
+fastapi
+git+https://github.com/ranking-agent/reasoner-pydantic#egg=reasoner-pydantic
+uvicorn
