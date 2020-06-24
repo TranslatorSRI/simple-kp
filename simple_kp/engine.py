@@ -107,9 +107,9 @@ class KnowledgeProvider():
                 'edges': dict(),
             }, [{
                 'node_bindings': {
-                    qnode['id']: {
+                    qnode['id']: [{
                         'kg_id': knode['id'],
-                    },
+                    }],
                 },
                 'edge_bindings': dict(),
             }]
@@ -162,9 +162,9 @@ class KnowledgeProvider():
             {
                 'node_bindings': {
                     **result['node_bindings'],
-                    qnode['id']: {
+                    qnode['id']: [{
                         'kg_id': knode['id'],
-                    },
+                    }],
                 },
                 'edge_bindings': result['edge_bindings'],
             }
@@ -229,9 +229,9 @@ class KnowledgeProvider():
                 'node_bindings': result['node_bindings'],
                 'edge_bindings': {
                     **result['edge_bindings'],
-                    qedge['id']: {
+                    qedge['id']: [{
                         'kg_id': kedge['id'],
-                    },
+                    }],
                 },
             }
             for result in results
