@@ -1,4 +1,4 @@
-source_id,type,target_id,origin
+subject,type,object,origin
 TGATE:Thrain,is_parent,TGATE:Thorin,Hobbit01
 TGATE:Thorin,is_child,TGATE:Thrain,Hobbit01
 TGATE:Bilbo,is_member,TGATE:Thorin_and_Company,Hobbit01
