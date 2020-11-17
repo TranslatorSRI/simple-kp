@@ -1,7 +1,7 @@
 """Simple API server."""
 import glob
 import os
-from typing import Union
+from typing import List, Union
 
 import aiosqlite
 from fastapi import Depends, FastAPI, APIRouter
@@ -29,7 +29,7 @@ app = FastAPI(
 def kp_router(
         database_file: Union[str, aiosqlite.Connection],
         name: str = None,
-        curie_prefixes: list[str] = None,
+        curie_prefixes: List[str] = None,
 ):
     """Add KP to server."""
     router = APIRouter()
