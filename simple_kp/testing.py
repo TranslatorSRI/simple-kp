@@ -5,9 +5,10 @@ Utilities for testing _other_ apps using simple-kp.
 import aiosqlite
 from fastapi import FastAPI
 
-from data.build_db import add_data
-from simple_kp.server import kp_router
 from asgiar import ASGIAR
+
+from .build_db import add_data
+from .server import kp_router
 
 from .contextlib import AsyncExitStack, asynccontextmanager
 
