@@ -7,7 +7,7 @@ import csv
 import aiosqlite
 
 from small_kg import nodes_file, edges_file, synonyms_file
-from simple_kp.types import CURIEMap
+from .types import CURIEMap
 
 
 async def add_data(

@@ -4,7 +4,7 @@ import pytest
 
 import aiosqlite
 
-from data.build_db import add_data
+from simple_kp.build_db import add_data
 from simple_kp.engine import KnowledgeProvider
 
 from tests.logging_setup import setup_logger
