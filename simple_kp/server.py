@@ -5,10 +5,9 @@ from typing import Union
 
 import aiosqlite
 from fastapi import Depends, FastAPI, APIRouter
-from reasoner_pydantic import Message
+from reasoner_pydantic import Message, Response
 
 from .engine import KnowledgeProvider
-from .util import NoAnswersException
 
 
 def get_kp(database_file: Union[str, aiosqlite.Connection]):
@@ -30,28 +29,30 @@ app = FastAPI(
 def kp_router(
         database_file: Union[str, aiosqlite.Connection],
         name: str = None,
-        curie_prefix: str = None,
+        curie_prefixes: list[str] = None,
 ):
     """Add KP to server."""
     router = APIRouter()
 
-    @router.post("/query")
+    @router.post("/query", response_model=Response)
     async def answer_question(
             message: Message,
             kp: KnowledgeProvider = Depends(get_kp(database_file))
-    ):
+    ) -> Response:
         """Get results for query graph."""
         message = message.dict()
         qgraph = message["query_graph"]
 
         kgraph, results = await kp.get_results(qgraph)
 
-        message = {
-            "knowledge_graph": kgraph,
-            "results": results,
-            "query_graph": qgraph,
+        response = {
+            "message": {
+                "knowledge_graph": kgraph,
+                "results": results,
+                "query_graph": qgraph,
+            }
         }
-        return message
+        return response
 
     @router.get("/ops")
     async def get_operations(
@@ -64,7 +65,7 @@ def kp_router(
     async def get_metadata():
         """Get metadata."""
         return {
-            "curie_prefix": curie_prefix,
+            "curie_prefixes": curie_prefixes,
         }
 
     return router

@@ -43,7 +43,7 @@ def validate_node(qnode, knode):
     template = {
         key: value
         for key, value in qnode.items()
-        if value is not None
+        if key not in ["is_set"] and value is not None
     }
     return knode == {**knode, **template}
 
@@ -54,7 +54,7 @@ def validate_edge(qedge, kedge):
         key: value
         for key, value in qedge.items()
         if (
-            key not in ("id", "subject", "object")
+            key not in ("subject", "object")
             and value is not None
         )
     }
