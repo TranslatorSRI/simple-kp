@@ -2,7 +2,7 @@
 import logging
 import os
 import sqlite3
-from typing import Any, Dict, Union
+from typing import Any, Dict, Tuple, Union
 
 import aiosqlite
 
@@ -67,14 +67,14 @@ class KnowledgeProvider():
         ops = set()
         for edge in edges:
             ops.add((
-                nodes[edge["subject"]]["type"],
-                "-" + edge["type"] + "->",
-                nodes[edge["object"]]["type"],
+                nodes[edge["subject"]]["category"],
+                "-" + edge["predicate"] + "->",
+                nodes[edge["object"]]["category"],
             ))
             ops.add((
-                nodes[edge["object"]]["type"],
-                "<-" + edge["type"] + "-",
-                nodes[edge["subject"]]["type"],
+                nodes[edge["object"]]["category"],
+                "<-" + edge["predicate"] + "-",
+                nodes[edge["subject"]]["category"],
             ))
         return [
             {
@@ -90,15 +90,24 @@ class KnowledgeProvider():
         assert kwargs
         conditions = " AND ".join(f"{key} = ?" for key in kwargs)
         async with self.db.execute(
-                "SELECT * FROM edges WHERE " + conditions,
+                "SELECT id, subject, predicate, object FROM edges WHERE " + conditions,
                 list(kwargs.values()),
         ) as cursor:
-            return [dict(val) for val in await cursor.fetchall()]
+            rows = await cursor.fetchall()
+        return {
+            row["id"]: {
+                k: v
+                for k, v in dict(row).items()
+                if k != "id"
+            }
+            for row in rows
+        }
 
     async def expand_from_node(
             self,
             qgraph: Dict[str, Any],
             qnode_id: str,
+            knode_id: str,
             knode: Dict[str, Any],
     ):
         """Expand from query graph node."""
@@ -106,13 +115,13 @@ class KnowledgeProvider():
         if not qgraph["edges"]:
             return {
                 "nodes": {
-                    knode["id"]: knode
+                    knode_id: knode
                 },
                 "edges": dict(),
             }, [{
                 "node_bindings": {
                     qnode_id: [{
-                        "kg_id": knode["id"],
+                        "id": knode_id,
                     }],
                 },
                 "edge_bindings": dict(),
@@ -121,23 +130,28 @@ class KnowledgeProvider():
         LOGGER.debug(
             "Expanding from node %s/%s...",
             qnode_id,
-            knode["id"],
+            knode_id,
         )
 
         kgraph = {"nodes": dict(), "edges": dict()}
         results = []
-        for _, qedge in qgraph["edges"].items():
+        for qedge_id, qedge in qgraph["edges"].items():
             # get kedges for qedge
             if qnode_id == qedge["subject"]:
-                kedges = await self.get_kedges(subject=knode["id"])
+                kedges = await self.get_kedges(subject=knode_id)
             elif qnode_id == qedge["object"]:
-                kedges = await self.get_kedges(object=knode["id"])
+                kedges = await self.get_kedges(object=knode_id)
             else:
                 continue
 
-            for kedge in kedges:
+            for kedge_id, kedge in kedges.items():
                 # validate kedge against qedge
                 if not validate_edge(qedge, kedge):
+                    LOGGER.debug(
+                        "kedge %s does not satisfy qedge %s",
+                        str(kedge),
+                        str(qedge),
+                    )
                     continue
 
                 # recursively expand from edge
@@ -150,7 +164,8 @@ class KnowledgeProvider():
                         },
                         "edges": qgraph["edges"],
                     },
-                    qedge,
+                    qedge_id,
+                    kedge_id,
                     kedge,
                 )
                 kgraph["nodes"].update(kgraph_["nodes"])
@@ -161,13 +176,13 @@ class KnowledgeProvider():
             return kgraph, results
 
         # add node to results and kgraph
-        kgraph["nodes"][knode["id"]] = knode
+        kgraph["nodes"][knode_id] = knode
         results = [
             {
                 "node_bindings": {
                     **result["node_bindings"],
                     qnode_id: [{
-                        "kg_id": knode["id"],
+                        "id": knode_id,
                     }],
                 },
                 "edge_bindings": result["edge_bindings"],
@@ -176,21 +191,22 @@ class KnowledgeProvider():
         ]
         return kgraph, results
 
-    async def get_knode(self, knode_id: str):
+    async def get_knode(self, knode_id: str) -> Tuple[str, Dict]:
         """Get knode by id."""
         async with self.db.execute(
                 "SELECT * FROM nodes WHERE id = ?",
                 [knode_id],
         ) as cursor:
             row = await cursor.fetchone()
-            if row is None:
-                raise NoAnswersException()
-            return dict(row)
+        if row is None:
+            raise NoAnswersException()
+        return row["id"], {k: v for k, v in dict(row).items() if k != "id"}
 
     async def expand_from_edge(
             self,
             qgraph: Dict[str, Any],
-            qedge: Dict[str, Any],
+            qedge_id: str,
+            kedge_id: str,
             kedge: Dict[str, Any],
     ):
         """Expand along a query graph edge.
@@ -199,24 +215,33 @@ class KnowledgeProvider():
         """
         LOGGER.debug(
             "Expanding from edge %s/%s...",
-            qedge["id"],
-            kedge["id"],
+            qedge_id,
+            kedge_id,
         )
+        qedge = qgraph["edges"][qedge_id]
 
         # get the remaining endpoint (query-graph and knowledge-graph nodes)
         if qedge["object"] in qgraph["nodes"]:
             qnode_id = qedge["object"]
-            knode = await self.get_knode(kedge["object"])
+            knode_id, knode = await self.get_knode(kedge["object"])
         elif qedge["subject"] in qgraph["nodes"]:
             qnode_id = qedge["subject"]
-            knode = await self.get_knode(kedge["subject"])
+            knode_id, knode = await self.get_knode(kedge["subject"])
+        else:
+            raise RuntimeError("Expanding from qedge with no endpoints?")
         qnode = qgraph["nodes"][qnode_id]
 
         kgraph = {"nodes": dict(), "edges": dict()}
         results = []
 
         # validate knode against qnode
-        if not validate_node(qnode, knode):
+        _knode = {**knode, "id": knode_id}
+        if not validate_node(qnode, _knode):
+            LOGGER.debug(
+                "knode %s does not satisfy qnode %s",
+                str(_knode),
+                str(qnode),
+            )
             return kgraph, results
 
         # recursively expand from the endpoint
@@ -226,24 +251,25 @@ class KnowledgeProvider():
                 "edges": {
                     key: value
                     for key, value in qgraph["edges"].items()
-                    if key != qedge["id"]
+                    if key != qedge_id
                 },
             },
             qnode_id,
+            knode_id,
             knode,
         )
         if not results:
             return kgraph, results
 
         # add edge to results and kgraph
-        kgraph["edges"][kedge["id"]] = kedge
+        kgraph["edges"][kedge_id] = kedge
         results = [
             {
                 "node_bindings": result["node_bindings"],
                 "edge_bindings": {
                     **result["edge_bindings"],
-                    qedge["id"]: [{
-                        "kg_id": kedge["id"],
+                    qedge_id: [{
+                        "id": kedge_id,
                     }],
                 },
             }
@@ -259,7 +285,7 @@ class KnowledgeProvider():
         qnode_id, qnode = next(
             (key, qnode)
             for key, qnode in qgraph["nodes"].items()
-            if qnode.get("id", None)
+            if qnode.get("id", None) is not None
         )
         # look up associated knode(s)
         curies = to_list(qnode["id"])
@@ -270,12 +296,13 @@ class KnowledgeProvider():
         results = []
         for curie in curies:
             try:
-                knode = await self.get_knode(curie)
+                knode_id, knode = await self.get_knode(curie)
             except NoAnswersException:
                 break
             kgraph_, results_ = await self.expand_from_node(
                 qgraph,
                 qnode_id,
+                knode_id,
                 knode,
             )
             kgraph["nodes"].update(kgraph_["nodes"])
