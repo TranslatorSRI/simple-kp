@@ -1,0 +1,12 @@
+version: '3'
+services:
+  strider:
+    container_name: simple-kp
+    image: simple-kp
+    build:
+      context: .
+    volumes:
+      - ./data:/home/murphy/data
+    ports:
+      - '5139:5139'
+    command: ["-n", "./data/nodes.csv", "-e", "./data/edges.csv"]

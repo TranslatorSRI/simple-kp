@@ -71,7 +71,7 @@ def kp_router(
     return router
 
 
-database_files = glob.glob("data/*.db")
+database_files = glob.glob("sqlite/*.db")
 for database_file in database_files:
     name = os.path.splitext(os.path.basename(database_file))[0]
     app.include_router(kp_router(database_file), prefix="/" + name)
