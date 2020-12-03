@@ -16,13 +16,13 @@ async def add_data(
         curie_prefixes: CURIEMap = None,
 ):
     """Add data to SQLite database."""
-    with open(nodes_file, newline='') as csvfile:
+    with open(nodes_file, newline="", encoding="utf-8-sig") as csvfile:
         reader = csv.DictReader(
             csvfile,
             delimiter=',',
         )
         nodes = list(reader)
-    with open(edges_file, newline='') as csvfile:
+    with open(edges_file, newline="", encoding="utf-8-sig") as csvfile:
         reader = csv.DictReader(
             csvfile,
             delimiter=',',
