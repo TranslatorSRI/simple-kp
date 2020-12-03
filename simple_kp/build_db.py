@@ -14,6 +14,8 @@ async def add_data(
         connection: aiosqlite.Connection,
         origin: str = '',
         curie_prefixes: CURIEMap = None,
+        nodes_file=nodes_file,
+        edges_file=edges_file,
 ):
     """Add data to SQLite database."""
     with open(nodes_file, newline="", encoding="utf-8-sig") as csvfile:
@@ -85,10 +87,10 @@ async def add_data(
     await connection.commit()
 
 
-async def main(filename, origin=''):
+async def main(filename, **kwargs):
     """Load data from CSV files."""
     connection = await aiosqlite.connect(filename)
-    await add_data(connection, origin=origin)
+    await add_data(connection, **kwargs)
     await connection.close()
 
 
@@ -99,6 +101,13 @@ if __name__ == '__main__':
 
     parser.add_argument('filename', type=str, help='database file')
     parser.add_argument('--origin', type=str, default='', help='origin prefix')
+    parser.add_argument('--nodes', type=str, default='', help='nodes.csv')
+    parser.add_argument('--edges', type=str, default='', help='edges.csv')
 
     args = parser.parse_args()
-    asyncio.run(main(args.filename, origin=args.origin))
+    asyncio.run(main(
+        args.filename,
+        origin=args.origin,
+        nodes_file=args.nodes,
+        edges_file=args.edges,
+    ))
