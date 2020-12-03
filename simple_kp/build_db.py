@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 """Data I/O."""
-import argparse
-import asyncio
 import csv
 
 import aiosqlite
 
 from small_kg import nodes_file, edges_file, synonyms_file
-from simple_kp._types import CURIEMap
+from ._types import CURIEMap
 
 
 async def add_data(
@@ -85,29 +83,3 @@ async def add_data(
         ', '.join(['?' for _ in edges[0]])
     ), [list(edge.values()) for edge in edges])
     await connection.commit()
-
-
-async def main(filename, **kwargs):
-    """Load data from CSV files."""
-    connection = await aiosqlite.connect(filename)
-    await add_data(connection, **kwargs)
-    await connection.close()
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Build SQLite database from CSV files.',
-    )
-
-    parser.add_argument('filename', type=str, help='database file')
-    parser.add_argument('--origin', type=str, default='', help='origin prefix')
-    parser.add_argument('--nodes', type=str, default='', help='nodes.csv')
-    parser.add_argument('--edges', type=str, default='', help='edges.csv')
-
-    args = parser.parse_args()
-    asyncio.run(main(
-        args.filename,
-        origin=args.origin,
-        nodes_file=args.nodes,
-        edges_file=args.edges,
-    ))
