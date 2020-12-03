@@ -34,7 +34,7 @@ async def add_data(
             "id": idx
         }
         for idx, edge in enumerate(edges)
-        if edge["origin"].startswith(origin)
+        if "origin" not in edge or edge["origin"].startswith(origin)
     ]
 
     if curie_prefixes is not None:
