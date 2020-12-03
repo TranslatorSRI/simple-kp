@@ -10,7 +10,7 @@ from asgiar import ASGIAR
 from .build_db import add_data
 from .server import kp_router
 
-from .contextlib import AsyncExitStack, asynccontextmanager
+from ._contextlib import AsyncExitStack, asynccontextmanager
 
 
 @asynccontextmanager
