@@ -8,7 +8,6 @@ do
   esac
 done
 
-mkdir sqlite
-python build_db.py sqlite/data.db --nodes $NODES --edges $EDGES
+python build_db.py data.db --nodes $NODES --edges $EDGES
 uvicorn simple_kp.server:app --host 0.0.0.0 --port 5139 --reload
-rm -r sqlite
+rm data.db

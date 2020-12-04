@@ -14,7 +14,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-database_files = glob.glob("sqlite/*.db")
+database_files = glob.glob("./*.db")
 if not database_files:
     raise RuntimeError("No database in sqlite/")
 database_file = database_files[0]
