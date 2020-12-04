@@ -1,5 +1,6 @@
 """Simple API server."""
 import glob
+import logging
 import os
 from typing import List, Union
 
@@ -8,6 +9,8 @@ from fastapi import Depends, FastAPI, APIRouter
 from reasoner_pydantic import Message, Response
 
 from .engine import KnowledgeProvider
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_kp(database_file: Union[str, aiosqlite.Connection]):
@@ -72,6 +75,9 @@ def kp_router(
 
 
 database_files = glob.glob("sqlite/*.db")
-for database_file in database_files:
-    name = os.path.splitext(os.path.basename(database_file))[0]
-    app.include_router(kp_router(database_file), prefix="/" + name)
+if not database_files:
+    raise RuntimeError("No database in sqlite/")
+database_file = database_files[0]
+if len(database_files) > 1:
+    LOGGER.warning("More than one database file. Using %s", database_file)
+app.include_router(kp_router(database_file))

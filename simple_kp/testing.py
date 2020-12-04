@@ -14,13 +14,13 @@ from ._contextlib import AsyncExitStack, asynccontextmanager
 
 
 @asynccontextmanager
-async def kp_app(origin, **kwargs):
+async def kp_app(**kwargs):
     """KP context manager."""
     app = FastAPI()
 
     async with aiosqlite.connect(":memory:") as connection:
         # add data to sqlite
-        await add_data(connection, origin=origin, **kwargs)
+        await add_data(connection, **kwargs)
 
         # add kp to app
         app.include_router(kp_router(connection, **kwargs))
@@ -28,13 +28,13 @@ async def kp_app(origin, **kwargs):
 
 
 @asynccontextmanager
-async def kp_overlay(origin, **kwargs):
+async def kp_overlay(host, **kwargs):
     """KP(s) server context manager."""
     async with AsyncExitStack() as stack:
         app = await stack.enter_async_context(
-            kp_app(origin, **kwargs)
+            kp_app(**kwargs)
         )
         await stack.enter_async_context(
-            ASGIAR(app, host=origin)
+            ASGIAR(app, host=host)
         )
         yield

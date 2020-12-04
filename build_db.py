@@ -20,14 +20,12 @@ if __name__ == '__main__':
     )
 
     parser.add_argument('filename', type=str, help='database file')
-    parser.add_argument('--origin', type=str, default='', help='origin prefix')
     parser.add_argument('--nodes', type=str, default='', help='nodes.csv')
     parser.add_argument('--edges', type=str, default='', help='edges.csv')
 
     args = parser.parse_args()
     asyncio.run(main(
         args.filename,
-        origin=args.origin,
         nodes_file=args.nodes,
         edges_file=args.edges,
     ))
