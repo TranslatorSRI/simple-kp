@@ -4,16 +4,15 @@ import csv
 
 import aiosqlite
 
-from small_kg import nodes_file, edges_file, synonyms_file
+from small_kg import mychem, synonyms_file
 from ._types import CURIEMap
 
 
 async def add_data(
         connection: aiosqlite.Connection,
-        origin: str = '',
         curie_prefixes: CURIEMap = None,
-        nodes_file=nodes_file,
-        edges_file=edges_file,
+        nodes_file=mychem.nodes_file,
+        edges_file=mychem.edges_file,
 ):
     """Add data to SQLite database."""
     with open(nodes_file, newline="", encoding="utf-8-sig") as csvfile:
@@ -34,7 +33,6 @@ async def add_data(
             "id": idx
         }
         for idx, edge in enumerate(edges)
-        if "origin" not in edge or edge["origin"].startswith(origin)
     ]
 
     if curie_prefixes is not None:

@@ -6,6 +6,7 @@ import aiosqlite
 
 from simple_kp.build_db import add_data
 from simple_kp.engine import KnowledgeProvider
+from small_kg import mychem
 
 from tests.logging_setup import setup_logger
 
@@ -16,7 +17,11 @@ setup_logger()
 async def kp():
     """Return FastAPI app fixture."""
     async with aiosqlite.connect(":memory:") as connection:
-        await add_data(connection, origin="ctd")
+        await add_data(
+            connection,
+            nodes_file=mychem.nodes_file,
+            edges_file=mychem.edges_file,
+        )
         yield KnowledgeProvider(connection)
 
 
