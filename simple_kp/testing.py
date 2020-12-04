@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from asgiar import ASGIAR
 
 from .build_db import add_data
-from .server import kp_router
+from .router import kp_router
 
 from ._contextlib import AsyncExitStack, asynccontextmanager
 
