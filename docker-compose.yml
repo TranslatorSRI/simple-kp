@@ -1,6 +1,6 @@
 version: '3'
 services:
-  strider:
+  simple-kp:
     container_name: simple-kp
     image: simple-kp
     build:
