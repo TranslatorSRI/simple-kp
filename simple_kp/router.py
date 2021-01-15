@@ -4,7 +4,7 @@ from typing import List, Union
 
 import aiosqlite
 from fastapi import Depends, APIRouter
-from reasoner_pydantic import Message, Response
+from reasoner_pydantic import Query, Response
 
 from .engine import KnowledgeProvider
 
@@ -30,12 +30,12 @@ def kp_router(
 
     @router.post("/query", response_model=Response)
     async def answer_question(
-            message: Message,
+            query: Query,
             kp: KnowledgeProvider = Depends(get_kp(database_file))
     ) -> Response:
         """Get results for query graph."""
-        message = message.dict()
-        qgraph = message["query_graph"]
+        query = query.dict()
+        qgraph = query["message"]["query_graph"]
 
         kgraph, results = await kp.get_results(qgraph)
 
