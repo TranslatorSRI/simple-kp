@@ -14,7 +14,12 @@ LOGGER = logging.getLogger(__name__)
 class KnowledgeProvider():
     """Knowledge provider."""
 
-    def __init__(self, arg: Union[str, aiosqlite.Connection]):
+    def __init__(
+            self,
+            arg: Union[str, aiosqlite.Connection],
+            subject_to_object: bool = True,
+            object_to_subject: bool = True,
+    ):
         """Initialize."""
         if isinstance(arg, str):
             self.database_file = arg
@@ -31,6 +36,8 @@ class KnowledgeProvider():
             raise ValueError(
                 "arg should be of type str or aiosqlite.Connection"
             )
+        self.subject_to_object = subject_to_object
+        self.object_to_subject = object_to_subject
 
     async def __aenter__(self):
         """Enter context."""
@@ -66,16 +73,18 @@ class KnowledgeProvider():
 
         ops = set()
         for edge in edges:
-            ops.add((
-                nodes[edge["subject"]]["category"],
-                "-" + edge["predicate"] + "->",
-                nodes[edge["object"]]["category"],
-            ))
-            ops.add((
-                nodes[edge["object"]]["category"],
-                "<-" + edge["predicate"] + "-",
-                nodes[edge["subject"]]["category"],
-            ))
+            if self.subject_to_object:
+                ops.add((
+                    nodes[edge["subject"]]["category"],
+                    "-" + edge["predicate"] + "->",
+                    nodes[edge["object"]]["category"],
+                ))
+            if self.object_to_subject:
+                ops.add((
+                    nodes[edge["object"]]["category"],
+                    "<-" + edge["predicate"] + "-",
+                    nodes[edge["subject"]]["category"],
+                ))
         return [
             {
                 "source_type": op[0],
@@ -137,9 +146,9 @@ class KnowledgeProvider():
         results = []
         for qedge_id, qedge in qgraph["edges"].items():
             # get kedges for qedge
-            if qnode_id == qedge["subject"]:
+            if self.subject_to_object and qnode_id == qedge["subject"]:
                 kedges = await self.get_kedges(subject=knode_id)
-            elif qnode_id == qedge["object"]:
+            elif self.object_to_subject and qnode_id == qedge["object"]:
                 kedges = await self.get_kedges(object=knode_id)
             else:
                 continue
