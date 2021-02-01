@@ -104,6 +104,39 @@ async def test_forward(kp: KnowledgeProvider):
 
 
 @pytest.mark.asyncio
+async def test_list_properties(kp: KnowledgeProvider):
+    """Test that we correctly handle query graph where categories, ids, and predicates are lists."""
+    message = {
+        "query_graph": {
+            "nodes": {
+                "n0": {
+                    "category": ["biolink:Disease"],
+                },
+                "n1": {
+                    "category": ["biolink:ChemicalSubstance"],
+                    "id": ["CHEBI:136043"],
+                },
+            },
+            "edges": {
+                "e01": {
+                    "subject": "n1",
+                    "object": "n0",
+                    "predicate": ["biolink:treats"],
+                },
+            },
+        },
+        "results": {},
+        "knowledge_graph": {
+            "nodes": {},
+            "edges": {},
+        },
+    }
+    kgraph, results = await kp.get_results(message["query_graph"])
+    assert results
+    print(json.dumps(results, indent=4))
+
+
+@pytest.mark.asyncio
 async def test_no_reverse(connection: aiosqlite.Connection):
     """Test prohibited object->subject lookup."""
     kp = KnowledgeProvider(
