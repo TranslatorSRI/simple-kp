@@ -38,6 +38,23 @@ def is_cyclic(graph):
     return visit(next(iter(graph["nodes"])))
 
 
+def compare_template(obj, template):
+    """ 
+    Compare object to given template.
+    """
+    for key, template_value in template.items():
+        if key not in obj:
+            return False
+        object_value = obj[key]
+        if isinstance(template_value, list):
+            if object_value not in template_value:
+                return False
+        else:
+            if object_value != template_value:
+                return False
+    return True
+
+
 def validate_node(qnode, knode):
     """Validate knode against qnode."""
     template = {
@@ -45,7 +62,7 @@ def validate_node(qnode, knode):
         for key, value in qnode.items()
         if key not in ["is_set"] and value is not None
     }
-    return knode == {**knode, **template}
+    return compare_template(knode, template)
 
 
 def validate_edge(qedge, kedge):
@@ -58,7 +75,7 @@ def validate_edge(qedge, kedge):
             and value is not None
         )
     }
-    return kedge == {**kedge, **template}
+    return compare_template(kedge, template)
 
 
 class NoAnswersException(Exception):
