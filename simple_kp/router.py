@@ -22,8 +22,6 @@ def get_kp(database_file: Union[str, aiosqlite.Connection]):
 
 def kp_router(
         database_file: Union[str, aiosqlite.Connection],
-        curie_prefixes: List[str] = None,
-        **kwargs,
 ):
     """Add KP to server."""
     router = APIRouter()
@@ -56,10 +54,12 @@ def kp_router(
         return await kp.get_operations()
 
     @router.get("/metadata")
-    async def get_metadata():
+    async def get_metadata(
+            kp: KnowledgeProvider = Depends(get_kp(database_file)),
+    ):
         """Get metadata."""
         return {
-            "curie_prefixes": curie_prefixes,
+            "curie_prefixes": await kp.get_curie_prefixes(),
         }
 
     return router
