@@ -1,4 +1,5 @@
 """SQL query graph engine."""
+from collections import defaultdict
 import logging
 import os
 import sqlite3
@@ -11,14 +12,39 @@ from .util import is_cyclic, to_list, validate_edge, validate_node, NoAnswersExc
 LOGGER = logging.getLogger(__name__)
 
 
+def normalize_qgraph(qgraph):
+    """Normalize query graph."""
+    for node in qgraph["nodes"].values():
+        node["category"] = node.get("category", "biolink:NamedThing")
+    for edge in qgraph["edges"].values():
+        edge["predicate"] = to_list(edge.get("predicate", "biolink:related_to"))
+
+
+def to_kedge(row):
+    """Convert operation to kedge."""
+    row.pop("id")
+    if row["predicate"].startswith("<"):
+        kedge = {
+            "subject": row.pop("target"),
+            "predicate": row.pop("predicate")[2:-1],
+            "object": row.pop("source"),
+        }
+    else:
+        kedge = {
+            "subject": row.pop("source"),
+            "predicate": row.pop("predicate")[1:-2],
+            "object": row.pop("target"),
+        }
+    kedge.update(row)
+    return kedge
+
+
 class KnowledgeProvider():
     """Knowledge provider."""
 
     def __init__(
             self,
             arg: Union[str, aiosqlite.Connection],
-            subject_to_object: bool = True,
-            object_to_subject: bool = True,
     ):
         """Initialize."""
         if isinstance(arg, str):
@@ -36,8 +62,6 @@ class KnowledgeProvider():
             raise ValueError(
                 "arg should be of type str or aiosqlite.Connection"
             )
-        self.subject_to_object = subject_to_object
-        self.object_to_subject = object_to_subject
 
     async def __aenter__(self):
         """Enter context."""
@@ -73,18 +97,11 @@ class KnowledgeProvider():
 
         ops = set()
         for edge in edges:
-            if self.subject_to_object:
-                ops.add((
-                    nodes[edge["subject"]]["category"],
-                    "-" + edge["predicate"] + "->",
-                    nodes[edge["object"]]["category"],
-                ))
-            if self.object_to_subject:
-                ops.add((
-                    nodes[edge["object"]]["category"],
-                    "<-" + edge["predicate"] + "-",
-                    nodes[edge["subject"]]["category"],
-                ))
+            ops.add((
+                nodes[edge["source"]]["category"],
+                edge["predicate"],
+                nodes[edge["target"]]["category"],
+            ))
         return [
             {
                 "source_type": op[0],
@@ -94,21 +111,39 @@ class KnowledgeProvider():
             for op in ops
         ]
 
+    async def get_curie_prefixes(self):
+        """Get CURIE prefixes."""
+        async with self.db.execute(
+                "SELECT * FROM nodes",
+        ) as cursor:
+            nodes = [dict(val) for val in await cursor.fetchall()]
+        prefixes = defaultdict(list)
+        for node in nodes:
+            prefixes[node["category"]].append(node["id"].split(":")[0])
+        return dict(prefixes)
+
     async def get_kedges(self, **kwargs):
         """Get kedges by source id."""
         assert kwargs
-        conditions = " AND ".join(f"{key} = ?" for key in kwargs)
+        conditions = []
+        for key, value in kwargs.items():
+            if isinstance(value, list):
+                placeholders = ", ".join("?" for _ in value)
+                conditions.append(f"{key} in ({placeholders})")
+            else:
+                conditions.append(f"{key} = ?")
+        conditions = " AND ".join(conditions)
         async with self.db.execute(
-                "SELECT id, subject, predicate, object FROM edges WHERE " + conditions,
-                list(kwargs.values()),
+                "SELECT id, source, predicate, target FROM edges WHERE " + conditions,
+                list(
+                    x for value in kwargs.values()
+                    for x in to_list(value)
+                ),
         ) as cursor:
             rows = await cursor.fetchall()
+
         return {
-            row["id"]: {
-                k: v
-                for k, v in dict(row).items()
-                if k != "id"
-            }
+            row["id"]: to_kedge(dict(row))
             for row in rows
         }
 
@@ -146,10 +181,22 @@ class KnowledgeProvider():
         results = []
         for qedge_id, qedge in qgraph["edges"].items():
             # get kedges for qedge
-            if self.subject_to_object and qnode_id == qedge["subject"]:
-                kedges = await self.get_kedges(subject=knode_id)
-            elif self.object_to_subject and qnode_id == qedge["object"]:
-                kedges = await self.get_kedges(object=knode_id)
+            if qnode_id == qedge["subject"]:
+                kedges = await self.get_kedges(
+                    source=knode_id,
+                    predicate=[
+                        f"-{predicate}->"
+                        for predicate in qedge["predicate"]
+                    ],
+                )
+            elif qnode_id == qedge["object"]:
+                kedges = await self.get_kedges(
+                    source=knode_id,
+                    predicate=[
+                        f"<-{predicate}-"
+                        for predicate in qedge["predicate"]
+                    ],
+                )
             else:
                 continue
 
@@ -290,6 +337,7 @@ class KnowledgeProvider():
         """Get results and kgraph."""
         if is_cyclic(qgraph):
             raise ValueError("Query graph is cyclic.")
+        normalize_qgraph(qgraph)
         # find fixed qnode
         qnode_id, qnode = next(
             (key, qnode)

@@ -23,7 +23,7 @@ async def kp_app(**kwargs):
         await add_data(connection, **kwargs)
 
         # add kp to app
-        app.include_router(kp_router(connection, **kwargs))
+        app.include_router(kp_router(connection))
         yield app
 
 
