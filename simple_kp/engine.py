@@ -117,10 +117,13 @@ class KnowledgeProvider():
                 "SELECT * FROM nodes",
         ) as cursor:
             nodes = [dict(val) for val in await cursor.fetchall()]
-        prefixes = defaultdict(list)
+        prefixes = defaultdict(set)
         for node in nodes:
-            prefixes[node["category"]].append(node["id"].split(":")[0])
-        return dict(prefixes)
+            prefixes[node["category"]].add(node["id"].split(":")[0])
+        return {
+            category: list(prefix_set)
+            for category, prefix_set in prefixes.items()
+        }
 
     async def get_kedges(self, **kwargs):
         """Get kedges by source id."""

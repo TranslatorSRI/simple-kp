@@ -134,16 +134,18 @@ async def add_data(
     else:
         nodes, edges = await get_data_from_files(**kwargs)
 
-    await connection.execute('CREATE TABLE IF NOT EXISTS nodes ({0})'.format(
-        ', '.join([f'{val} text' for val in nodes[0]])
-    ))
-    await connection.executemany('INSERT INTO nodes VALUES ({0})'.format(
-        ', '.join(['?' for _ in nodes[0]])
-    ), [list(node.values()) for node in nodes])
-    await connection.execute('CREATE TABLE IF NOT EXISTS edges ({0})'.format(
-        ', '.join([f'{val} text' for val in edges[0]])
-    ))
-    await connection.executemany('INSERT INTO edges VALUES ({0})'.format(
-        ', '.join(['?' for _ in edges[0]])
-    ), [list(edge.values()) for edge in edges])
+    if nodes:
+        await connection.execute('CREATE TABLE IF NOT EXISTS nodes ({0})'.format(
+            ', '.join([f'{val} text' for val in nodes[0]])
+        ))
+        await connection.executemany('INSERT INTO nodes VALUES ({0})'.format(
+            ', '.join(['?' for _ in nodes[0]])
+        ), [list(node.values()) for node in nodes])
+    if edges:
+        await connection.execute('CREATE TABLE IF NOT EXISTS edges ({0})'.format(
+            ', '.join([f'{val} text' for val in edges[0]])
+        ))
+        await connection.executemany('INSERT INTO edges VALUES ({0})'.format(
+            ', '.join(['?' for _ in edges[0]])
+        ), [list(edge.values()) for edge in edges])
     await connection.commit()
