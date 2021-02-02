@@ -160,3 +160,39 @@ async def test_isittrue(connection: aiosqlite.Connection):
     }
     kgraph, results = await kp.get_results(message["query_graph"])
     assert results
+
+
+@pytest.mark.asyncio
+async def test_fail(connection: aiosqlite.Connection):
+    """Test simple KP."""
+    await add_data(
+        connection,
+        data="""
+            MONDO:0005148(( category biolink:Disease ))
+            MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
+            CHEBI:6801(( category biolink:ChemicalSubstance ))
+        """,
+    )
+    kp = KnowledgeProvider(connection)
+    message = {
+        "query_graph": {
+            "nodes": {
+                "n0": {
+                    "category": "biolink:Disease",
+                    "id": "MONDO:0005148",
+                },
+                "n1": {
+                    "category": "biolink:ChemicalSubstance",
+                },
+            },
+            "edges": {
+                "e01": {
+                    "subject": "n1",
+                    "object": "n0",
+                    "predicate": "biolink:causes",
+                },
+            },
+        }
+    }
+    kgraph, results = await kp.get_results(message["query_graph"])
+    assert results == []
