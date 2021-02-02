@@ -23,9 +23,9 @@ async def test_reverse(connection: aiosqlite.Connection):
     await add_data(
         connection,
         data="""
-        MONDO:0005148(( category biolink:Disease ))
-        MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
-        CHEBI:6801(( category biolink:ChemicalSubstance ))
+            MONDO:0005148(( category biolink:Disease ))
+            MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
+            CHEBI:6801(( category biolink:ChemicalSubstance ))
         """,
     )
     kp = KnowledgeProvider(connection)
@@ -59,9 +59,9 @@ async def test_list_properties(connection: aiosqlite.Connection):
     await add_data(
         connection,
         data="""
-        CHEBI:136043(( category biolink:ChemicalSubstance ))
-        CHEBI:136043-- predicate biolink:treats -->MONDO:0005148
-        MONDO:0005148(( category biolink:Disease ))
+            CHEBI:136043(( category biolink:ChemicalSubstance ))
+            CHEBI:136043-- predicate biolink:treats -->MONDO:0005148
+            MONDO:0005148(( category biolink:Disease ))
         """,
     )
     kp = KnowledgeProvider(connection)
@@ -95,9 +95,9 @@ async def test_no_reverse(connection: aiosqlite.Connection):
     await add_data(
         connection,
         data="""
-        MONDO:0005148(( category biolink:Disease ))
-        MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
-        CHEBI:6801(( category biolink:ChemicalSubstance ))
+            MONDO:0005148(( category biolink:Disease ))
+            MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
+            CHEBI:6801(( category biolink:ChemicalSubstance ))
         """,
     )
     kp = KnowledgeProvider(connection)
@@ -131,9 +131,9 @@ async def test_isittrue(connection: aiosqlite.Connection):
     await add_data(
         connection,
         data="""
-        MONDO:0005148(( category biolink:Disease ))
-        MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
-        CHEBI:6801(( category biolink:ChemicalSubstance ))
+            MONDO:0005148(( category biolink:Disease ))
+            MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
+            CHEBI:6801(( category biolink:ChemicalSubstance ))
         """,
     )
     kp = KnowledgeProvider(connection)
