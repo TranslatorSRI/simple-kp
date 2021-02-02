@@ -53,8 +53,8 @@ async def test_prefixes(connection: aiosqlite.Connection):
         connection,
         data="""
         MONDO:0005148(( category biolink:Disease ))
-        MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
         CHEBI:6801(( category biolink:ChemicalSubstance ))
+        CHEBI:xxx(( category biolink:ChemicalSubstance ))
         """,
     )
     kp = KnowledgeProvider(connection)
