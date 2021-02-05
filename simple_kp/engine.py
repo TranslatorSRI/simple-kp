@@ -146,10 +146,12 @@ class KnowledgeProvider():
         async with self.db.execute(
                 "SELECT * FROM nodes",
         ) as cursor:
-            nodes = [dict(val) for val in await cursor.fetchall()]
+            nodes = await cursor.fetchall()
+
         prefixes = defaultdict(set)
         for node in nodes:
-            prefixes[node["category"]].add(node["id"].split(":")[0])
+            for category in node["category"]:
+                prefixes[category].add(node["id"].split(":")[0])
         return {
             category: list(prefix_set)
             for category, prefix_set in prefixes.items()
