@@ -2,6 +2,8 @@
 from collections import defaultdict
 import logging
 import os
+import re
+import itertools
 import sqlite3
 from typing import Any, Dict, Tuple, Union
 
@@ -17,7 +19,8 @@ def normalize_qgraph(qgraph):
     for node in qgraph["nodes"].values():
         node["category"] = node.get("category", "biolink:NamedThing")
     for edge in qgraph["edges"].values():
-        edge["predicate"] = to_list(edge.get("predicate", "biolink:related_to"))
+        edge["predicate"] = to_list(
+            edge.get("predicate", "biolink:related_to"))
 
 
 def to_kedge(row):
@@ -39,6 +42,27 @@ def to_kedge(row):
     return kedge
 
 
+list_fields = ['category', 'predicate']
+match_list = re.compile(r"\|(.*?)\|")
+
+
+def custom_row_factory(cursor, row):
+    """
+    Convert row to dictionary and
+    convert some of the fields to lists
+    """
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+
+    for field in list_fields:
+        if field not in d:
+            continue
+        values = match_list.finditer(d[field])
+        d[field] = [v.group(1) for v in values]
+    return d
+
+
 class KnowledgeProvider():
     """Knowledge provider."""
 
@@ -57,7 +81,7 @@ class KnowledgeProvider():
             self.database_file = None
             self.name = None
             self.db = arg
-            self.db.row_factory = sqlite3.Row
+            self.db.row_factory = custom_row_factory
         else:
             raise ValueError(
                 "arg should be of type str or aiosqlite.Connection"
@@ -84,12 +108,12 @@ class KnowledgeProvider():
         async with self.db.execute(
                 "SELECT * FROM edges",
         ) as cursor:
-            edges = [dict(val) for val in await cursor.fetchall()]
+            edges = await cursor.fetchall()
 
         async with self.db.execute(
                 "SELECT * FROM nodes",
         ) as cursor:
-            nodes = [dict(val) for val in await cursor.fetchall()]
+            nodes = await cursor.fetchall()
         nodes = {
             node["id"]: node
             for node in nodes
@@ -97,11 +121,17 @@ class KnowledgeProvider():
 
         ops = set()
         for edge in edges:
-            ops.add((
-                nodes[edge["source"]]["category"],
+            source_node = nodes[edge["source"]]
+            target_node = nodes[edge["target"]]
+
+            operation_iterator = itertools.product(
+                source_node["category"],
                 edge["predicate"],
-                nodes[edge["target"]]["category"],
-            ))
+                target_node["category"],
+            )
+
+            ops.update(operation_iterator)
+
         return [
             {
                 "source_type": op[0],
