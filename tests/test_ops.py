@@ -47,6 +47,25 @@ async def test_ops(connection: aiosqlite.Connection):
 
 
 @pytest.mark.asyncio
+async def test_ops_multiple_categories_predicates(connection: aiosqlite.Connection):
+    """Test KP operations."""
+    await add_data(
+        connection,
+        data="""
+        MONDO:0005148(( category biolink:Disease ))
+        MONDO:0005148(( category biolink:DiseaseOrPhenotypicFeature ))
+        MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
+        MONDO:0005148<-- predicate biolink:ameliorates --CHEBI:6801
+        CHEBI:6801(( category biolink:ChemicalSubstance ))
+        CHEBI:6801(( category biolink:Drug ))
+        """,
+    )
+    kp = KnowledgeProvider(connection)
+    ops = await kp.get_operations()
+    assert len(ops) == 8
+
+
+@pytest.mark.asyncio
 async def test_prefixes(connection: aiosqlite.Connection):
     """Test CURIE prefixes."""
     await add_data(
