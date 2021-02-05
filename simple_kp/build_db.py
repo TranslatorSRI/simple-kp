@@ -26,40 +26,47 @@ async def get_data_from_string(data: str):
         r"(?P<o2s><?)-- predicate (?P<predicate>[\w:]+) --(?P<s2o>>?)"
         r"(?P<target>[\w:]+)"
     )
-    nodes = []
-    edges = []
-    for idx, line in enumerate(data.split("\n")):
+    nodes = {}
+    edges = {}
+    for line in data.split("\n"):
         line = line.strip()
         if not line:
             continue
+
         match = re.fullmatch(node_pattern, line)
         if match is not None:
-            nodes.append({
-                "id": match.group("id"),
-                "category": match.group("category"),
-            })
+            nid = match.group("id")
+            if nid not in nodes:
+                nodes[nid] = {
+                    "id": nid,
+                    "category": [],
+                }
+
+            nodes[nid]["category"].append(
+                match.group("category")
+            )
             continue
+
         match = re.fullmatch(edge_pattern, line)
         if match is not None:
+            eid = f"{match.group('source')}-{match.group('target')}"
+            if eid not in edges:
+                edges[eid] = {
+                    "id": eid,
+                    "source": match.group("source"),
+                    "predicate": [],
+                    "target": match.group("target"),
+                }
             predicate = match.group("predicate")
             if match.group("o2s"):
                 predicate = f"<-{predicate}-"
             else:
                 predicate = f"-{predicate}->"
-            edges.append({
-                "id": idx,
-                "source": match.group("source"),
-                "predicate": predicate,
-                "target": match.group("target"),
-            })
+            edges[eid]["predicate"].append(predicate)
             continue
+
         raise ValueError(f"Failed to parse '{line}'")
-    # unique-ify nodes
-    nodes = list({
-        node["id"]: node
-        for node in nodes
-    }.values())
-    return nodes, edges
+    return list(nodes.values()), list(edges.values())
 
 
 async def get_data_from_files(
@@ -135,6 +142,11 @@ async def add_data(
         nodes, edges = await get_data_from_files(**kwargs)
 
     if nodes:
+        # Convert category list to our custom string format
+        for node in nodes:
+            if 'category' in node:
+                node['category'] = "".join(f"|{c}|" for c in node['category'])
+
         await connection.execute('CREATE TABLE IF NOT EXISTS nodes ({0})'.format(
             ', '.join([f'{val} text' for val in nodes[0]])
         ))
@@ -142,6 +154,10 @@ async def add_data(
             ', '.join(['?' for _ in nodes[0]])
         ), [list(node.values()) for node in nodes])
     if edges:
+        # Convert predicate list to our custom string format
+        for edge in edges:
+            edge['predicate'] = "".join(f"|{c}|" for c in edge['predicate'])
+
         await connection.execute('CREATE TABLE IF NOT EXISTS edges ({0})'.format(
             ', '.join([f'{val} text' for val in edges[0]])
         ))
