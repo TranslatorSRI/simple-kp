@@ -2,10 +2,13 @@
 import aiosqlite
 import pytest
 
+from reasoner_pydantic import KnowledgeGraph, Result
+
 from simple_kp.build_db import add_data
 from simple_kp.engine import KnowledgeProvider
 
 from .logging_setup import setup_logger
+
 
 setup_logger()
 
@@ -86,6 +89,48 @@ async def test_list_properties(connection: aiosqlite.Connection):
         }
     }
     kgraph, results = await kp.get_results(message["query_graph"])
+    assert results
+
+
+@pytest.mark.asyncio
+async def test_multiple_categories(connection: aiosqlite.Connection):
+    """
+    Test that when given multiple categories for a node
+    we return all of them
+    """
+    await add_data(
+        connection,
+        data="""
+            MONDO:0005148(( category biolink:Disease ))
+            MONDO:0005148<-- predicate biolink:treats --CHEBI:6801
+            CHEBI:6801(( category biolink:ChemicalSubstance ))
+            CHEBI:6801(( category biolink:Drug ))
+        """,
+    )
+    kp = KnowledgeProvider(connection)
+    message = {
+        "query_graph": {
+            "nodes": {
+                "n0": {
+                    "category": "biolink:Disease",
+                    "id": "MONDO:0005148",
+                },
+                "n1": {
+                    "category": "biolink:ChemicalSubstance",
+                },
+            },
+            "edges": {
+                "e01": {
+                    "subject": "n1",
+                    "object": "n0",
+                    "predicate": "biolink:treats",
+                },
+            },
+        }
+    }
+    kgraph, results = await kp.get_results(message["query_graph"])
+    assert kgraph['nodes']['CHEBI:6801']['category'] == \
+        ['biolink:ChemicalSubstance', 'biolink:Drug']
     assert results
 
 

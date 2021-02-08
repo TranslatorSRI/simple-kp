@@ -55,8 +55,11 @@ def compare_template(obj, template):
         object_value_list = to_list(object_value)
         template_value_list = to_list(template_value)
 
-        if template_value_list != object_value_list:
-            return False
+        # Every value in template_value_list must
+        # be present in object_value_list
+        for current_value in template_value_list:
+            if current_value not in object_value_list:
+                return False
 
     return True
 
