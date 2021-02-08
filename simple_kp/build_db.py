@@ -2,6 +2,7 @@
 """Data I/O."""
 import csv
 import re
+import uuid
 
 import aiosqlite
 
@@ -49,7 +50,7 @@ async def get_data_from_string(data: str):
 
         match = re.fullmatch(edge_pattern, line)
         if match is not None:
-            eid = f"{match.group('source')}-{match.group('target')}"
+            eid = str(uuid.uuid4())
 
             predicate = match.group("predicate")
             if match.group("o2s"):
