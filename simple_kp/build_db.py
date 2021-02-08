@@ -50,19 +50,19 @@ async def get_data_from_string(data: str):
         match = re.fullmatch(edge_pattern, line)
         if match is not None:
             eid = f"{match.group('source')}-{match.group('target')}"
-            if eid not in edges:
-                edges[eid] = {
-                    "id": eid,
-                    "source": match.group("source"),
-                    "predicate": [],
-                    "target": match.group("target"),
-                }
+
             predicate = match.group("predicate")
             if match.group("o2s"):
                 predicate = f"<-{predicate}-"
             else:
                 predicate = f"-{predicate}->"
-            edges[eid]["predicate"].append(predicate)
+
+            edges[eid] = {
+                "id": eid,
+                "source": match.group("source"),
+                "predicate": predicate,
+                "target": match.group("target"),
+            }
             continue
 
         raise ValueError(f"Failed to parse '{line}'")
@@ -154,10 +154,6 @@ async def add_data(
             ', '.join(['?' for _ in nodes[0]])
         ), [list(node.values()) for node in nodes])
     if edges:
-        # Convert predicate list to our custom string format
-        for edge in edges:
-            edge['predicate'] = "".join(f"|{c}|" for c in edge['predicate'])
-
         await connection.execute('CREATE TABLE IF NOT EXISTS edges ({0})'.format(
             ', '.join([f'{val} text' for val in edges[0]])
         ))
