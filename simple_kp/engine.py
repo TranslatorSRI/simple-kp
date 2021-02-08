@@ -1,9 +1,9 @@
 """SQL query graph engine."""
 from collections import defaultdict
+import itertools
 import logging
 import os
 import re
-import itertools
 import sqlite3
 from typing import Any, Dict, Tuple, Union
 
