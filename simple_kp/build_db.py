@@ -145,20 +145,20 @@ async def add_data(
     if nodes:
         # Convert category list to our custom string format
         for node in nodes:
-            if 'category' in node:
-                node['category'] = "".join(f"|{c}|" for c in node['category'])
+            if "category" in node:
+                node["category"] = "".join(f"|{c}|" for c in node["category"])
 
-        await connection.execute('CREATE TABLE IF NOT EXISTS nodes ({0})'.format(
-            ', '.join([f'{val} text' for val in nodes[0]])
+        await connection.execute("CREATE TABLE IF NOT EXISTS nodes ({0})".format(
+            ", ".join([f"{val} text" for val in nodes[0]])
         ))
-        await connection.executemany('INSERT INTO nodes VALUES ({0})'.format(
-            ', '.join(['?' for _ in nodes[0]])
+        await connection.executemany("INSERT INTO nodes VALUES ({0})".format(
+            ", ".join(["?" for _ in nodes[0]])
         ), [list(node.values()) for node in nodes])
     if edges:
-        await connection.execute('CREATE TABLE IF NOT EXISTS edges ({0})'.format(
-            ', '.join([f'{val} text' for val in edges[0]])
+        await connection.execute("CREATE TABLE IF NOT EXISTS edges ({0})".format(
+            ", ".join([f"{val} text" for val in edges[0]])
         ))
-        await connection.executemany('INSERT INTO edges VALUES ({0})'.format(
-            ', '.join(['?' for _ in edges[0]])
+        await connection.executemany("INSERT INTO edges VALUES ({0})".format(
+            ", ".join(["?" for _ in edges[0]])
         ), [list(edge.values()) for edge in edges])
     await connection.commit()
