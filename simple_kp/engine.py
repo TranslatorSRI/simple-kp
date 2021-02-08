@@ -51,16 +51,16 @@ def custom_row_factory(cursor, row):
     Convert row to dictionary and
     convert some of the fields to lists
     """
-    d = {}
+    row_output = {}
     for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
+        row_output[col[0]] = row[idx]
 
     for field in list_fields:
-        if field not in d:
+        if field not in row_output:
             continue
-        values = match_list.finditer(d[field])
-        d[field] = [v.group(1) for v in values]
-    return d
+        values = match_list.finditer(row_output[field])
+        row_output[field] = [v.group(1) for v in values]
+    return row_output
 
 
 class KnowledgeProvider():
