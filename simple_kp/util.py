@@ -41,17 +41,23 @@ def is_cyclic(graph):
 def compare_template(obj, template):
     """ 
     Compare object to given template.
+
+    All properties in the template must be present in the
+    object and equal to the value of the object property.
     """
     for key, template_value in template.items():
         if key not in obj:
             return False
         object_value = obj[key]
-        if isinstance(template_value, list):
-            if object_value not in template_value:
-                return False
-        else:
-            if object_value != template_value:
-                return False
+
+        # Some properties might be wrapped in a list
+        # Convert all properties to a list for easy comparison
+        object_value_list = to_list(object_value)
+        template_value_list = to_list(template_value)
+
+        if template_value_list != object_value_list:
+            return False
+
     return True
 
 

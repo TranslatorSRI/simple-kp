@@ -42,7 +42,7 @@ def to_kedge(row):
     return kedge
 
 
-list_fields = ['category', 'predicate']
+list_fields = ['category']
 match_list = re.compile(r"\|(.*?)\|")
 
 
@@ -126,7 +126,7 @@ class KnowledgeProvider():
 
             operation_iterator = itertools.product(
                 source_node["category"],
-                edge["predicate"],
+                [edge["predicate"]],
                 target_node["category"],
             )
 
